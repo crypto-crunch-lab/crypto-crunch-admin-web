@@ -5,7 +5,7 @@ import DashboardLayout from '../../../components/common/DashboardLayout'
 import DefiList from '../../../components/defi/list/DefiList'
 
 const DefiListPage: NextPage = ({ defiData, networkData, metaData }: any) => {
-  return <DashboardLayout content={<DefiList defiData={defiData} networkData={networkData} metaData={metaData}/>}/>
+  return <DashboardLayout content={<DefiList defiData={defiData} networkData={networkData} metaData={metaData} />} />
 }
 
 // This gets called on every request
