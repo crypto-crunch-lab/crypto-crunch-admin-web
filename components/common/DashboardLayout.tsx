@@ -28,7 +28,7 @@ const DashboardLayout = ({ content, path }: DashboardLayoutProps) => {
       case '/defi/list':
         setMenuSeq('0-0')
         break
-      case '/defi/platforms':
+      case '/defi/platform':
         setMenuSeq('0-1')
         break
       default:
@@ -70,7 +70,7 @@ const DashboardLayout = ({ content, path }: DashboardLayoutProps) => {
                 onClick={() => {
                   setMenuSeq('0-1')
                   setSubMenuSeq('0')
-                  router.push('/defi/platforms')
+                  router.push('/defi/platform')
                 }}
               >
                 플랫폼 리스트
