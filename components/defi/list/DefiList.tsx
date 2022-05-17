@@ -1,9 +1,11 @@
-import { Button, Descriptions, Input, message, Select, Table, Tag } from 'antd'
+import { Button, Descriptions, Input, Select, Table, Tag } from 'antd'
 import axios from 'axios'
 import dotProp from 'dot-prop-immutable'
+import moment from 'moment'
 import numeral from 'numeral'
 import { useEffect, useState } from 'react'
 
+import { DefiPlatform } from '../../../types/defi/DefiPlatform'
 import { DefiConf } from '../DefiConf'
 
 interface DefiSearchRequest {
@@ -27,10 +29,9 @@ interface DefiSearchFilter {
 interface DefiListProps {
   defiData: any
   networkData: any
-  metaData: any
 }
 
-const DefiList = ({ defiData, networkData, metaData }: DefiListProps) => {
+const DefiList = ({ defiData, networkData }: DefiListProps) => {
   const initialRequest = {
     size: 10000,
     sorts: { field: 'tvl', order: 'DESC' },
@@ -51,7 +52,8 @@ const DefiList = ({ defiData, networkData, metaData }: DefiListProps) => {
     {
       title: '플랫폼',
       dataIndex: 'platform',
-      key: 'platform',
+      key: 'platformName',
+      render: (data: DefiPlatform) => (data.name ? data.name : ''),
     },
     {
       title: '네트워크',
@@ -75,94 +77,47 @@ const DefiList = ({ defiData, networkData, metaData }: DefiListProps) => {
     },
     {
       title: '코인 유형',
-      dataIndex: 'coinType',
-      key: 'coinType',
-      render: (data: any, record: any) =>
-        DefiConf.coinType[data] || (
-          <div>
-            <Select
-              // value={request.filters.network}
-              style={{ width: 150 }}
-              allowClear
-              onChange={(value: string) => {
-                const update = { id: record.id, coinType: value }
-                setCoinTypeList(coinTypeList.concat(update))
-              }}
-            >
-              {meta &&
-                meta.coinTypeMap &&
-                Object.entries(meta.coinTypeMap).map(([key, value]: [string, any]) => (
-                  <Select.Option value={key}>{value}</Select.Option>
-                ))}
-            </Select>
-            <Button
-              onClick={(e) => {
-                let defi = record
-                defi = dotProp.set(defi, 'coinType', coinTypeList.find((c) => c.id === record.id).coinType)
-                if (defi && defi.coinType) {
-                  update(defi)
-                } else {
-                  message.warn('업데이트 실패')
-                }
-              }}
-            >
-              등록
-            </Button>
-          </div>
-        ),
+      dataIndex: 'coinTypes',
+      key: 'coinTypes',
+      render: (data: any[]) => (
+        <div>{data && data.length > 0 && data.map((d) => <Tag>{DefiConf.coinType[d]}</Tag>)}</div>
+      ),
     },
     {
       title: '특징',
-      dataIndex: 'attributes',
+      dataIndex: 'platform',
       key: 'attributes',
-      render: (data: any, record: any) =>
-        DefiConf.attribute[data] || (
-          <div>
-            <Select
-              // value={request.filters.network}
-              style={{ width: 150 }}
-              allowClear
-              onChange={(value: string) => {
-                const update = { id: record.id, attribute: value }
-                setAttributeList(attributeList.concat(update))
-              }}
-            >
-              {meta &&
-                meta.attributeTypeMap &&
-                Object.entries(meta.attributeTypeMap).map(([key, value]: [string, any]) => (
-                  <Select.Option value={key}>{value}</Select.Option>
-                ))}
-            </Select>
-            <Button
-              onClick={async (e) => {
-                let defi = record
-                defi = dotProp.set(
-                  defi,
-                  'attributes',
-                  defi.attributes
-                    ? defi.attributes.concat(attributeList.find((c) => c.id === record.id).attribute)
-                    : [attributeList.find((c) => c.id === record.id).attribute],
-                )
-                if (defi && defi.attributes) {
-                  const res = await update(defi)
-                } else {
-                  message.warn('업데이트 실패')
-                }
-              }}
-            >
-              등록
-            </Button>
-          </div>
-        ),
+      render: (data: DefiPlatform) => (
+        <div>
+          {data.attributes &&
+            data.attributes.length > 0 &&
+            data.attributes.map((d) => <Tag>{DefiConf.attribute[d]}</Tag>)}
+        </div>
+      ),
+    },
+    {
+      title: '생성시간',
+      dataIndex: 'syncYmdt',
+      key: 'syncYmdt',
+      render: (data: any) => moment(data).format('yyyy-MM-DD HH:mm:ss'),
+    },
+    {
+      title: '수정시간',
+      dataIndex: 'updateYmdt',
+      key: 'updateYmdt',
+      render: (data: any) => moment(data).format('yyyy-MM-DD HH:mm:ss'),
+    },
+    {
+      title: '차트데이터 수정시간',
+      dataIndex: 'historyUpdateYmdt',
+      key: 'historyUpdateYmdt',
+      render: (data: any) => moment(data).format('yyyy-MM-DD HH:mm:ss'),
     },
   ]
 
   const [list, setList] = useState<any[]>()
   const [networkList, setNetworkList] = useState<any[]>()
-  const [meta, setMeta] = useState<any>()
   const [request, setRequest] = useState<DefiSearchRequest>(initialRequest)
-  const [coinTypeList, setCoinTypeList] = useState<any[]>([])
-  const [attributeList, setAttributeList] = useState<any[]>([])
 
   const onChangeKeyword = (e: any) => {
     const keyword = e.target.value
@@ -209,19 +164,10 @@ const DefiList = ({ defiData, networkData, metaData }: DefiListProps) => {
     }
   }
 
-  const update = (defi: any) => {
-    axios.post('/api/defi/update', defi).then((r) => {
-      if (r && r.status === 200) {
-        message.success('업데이트 성공').then((r) => fetchList().then((r) => r))
-      }
-    })
-  }
-
   useEffect(() => {
-    setList(defiData)
-    setNetworkList(networkData)
-    setMeta(metaData)
-  }, [defiData, networkData, metaData])
+    setList(defiData.data)
+    setNetworkList(networkData.data)
+  }, [defiData, networkData])
 
   useEffect(() => {
     fetchList().then((r) => r)
@@ -235,7 +181,9 @@ const DefiList = ({ defiData, networkData, metaData }: DefiListProps) => {
         style={{ marginBottom: '25px' }}
         contentStyle={{ background: 'white' }}
       >
-        <Descriptions.Item label='현재 개수'>{defiData ? numeral(defiData.length).format(',') : '0'}</Descriptions.Item>
+        <Descriptions.Item label='현재 개수'>
+          {defiData.data ? numeral(defiData.data.length).format(',') : '0'}
+        </Descriptions.Item>
         <Descriptions.Item label='검색 결과 개수'>{list ? numeral(list.length).format(',') : '0'}</Descriptions.Item>
       </Descriptions>
       <Descriptions bordered={true} style={{ marginBottom: '50px' }} contentStyle={{ background: 'white' }}>
