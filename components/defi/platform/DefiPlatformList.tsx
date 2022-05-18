@@ -44,7 +44,6 @@ const DefiPlatformList = ({ platformData }: DefiPlatformListProps) => {
               }
             }}
             defaultValue={data && data.length > 0 ? data : []}
-            value={data}
           >
             {Object.entries(DefiConf.attribute).map(([key, value]: [string, any]) => (
               <Select.Option value={key}>{value}</Select.Option>
@@ -103,6 +102,8 @@ const DefiPlatformList = ({ platformData }: DefiPlatformListProps) => {
     axios.post('/api/defi/platforms/update', platform).then((r) => {
       if (r && r.status === 200) {
         fetchList().then((r) => message.success('업데이트 성공'))
+      } else {
+        message.warn('업데이트 실패')
       }
     })
   }
@@ -114,7 +115,7 @@ const DefiPlatformList = ({ platformData }: DefiPlatformListProps) => {
   return (
     <>
       <Descriptions
-        title='디파이 플랫폼'
+        title='플랫폼 리스트'
         bordered={true}
         style={{ marginBottom: '25px' }}
         contentStyle={{ background: 'white' }}
