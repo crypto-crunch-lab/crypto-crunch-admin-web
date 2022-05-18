@@ -30,20 +30,17 @@ const DefiPlatformList = ({ platformData }: DefiPlatformListProps) => {
             mode='multiple'
             allowClear
             onChange={(values: string[]) => {
-              if (attributeList.find((a) => a.id === record.id)) {
-                setAttributeList(
-                  attributeList.map((a) => {
-                    if (a.id === record.id) {
-                      return dotProp.set(a, 'attributes', values)
-                    }
-                    return a
-                  }),
-                )
-              } else {
-                setAttributeList(attributeList.concat({ id: record.id, attributes: values }))
-              }
+              setList(
+                list?.map((p) => {
+                  if (p.id === record.id) {
+                    return dotProp.set(p, 'attributes', values)
+                  }
+                  return p
+                }),
+              )
             }}
             defaultValue={data && data.length > 0 ? data : []}
+            value={data}
           >
             {Object.entries(DefiConf.attribute).map(([key, value]: [string, any]) => (
               <Select.Option value={key}>{value}</Select.Option>
@@ -51,13 +48,8 @@ const DefiPlatformList = ({ platformData }: DefiPlatformListProps) => {
           </Select>
           <Button
             onClick={async (e) => {
-              const platform = dotProp.set(
-                record,
-                'attributes',
-                attributeList.find((c) => c.id === record.id).attributes,
-              )
-              if (platform && platform.attributes) {
-                update(platform)
+              if (record && record.attributes) {
+                update(record)
               } else {
                 message.warn('업데이트 실패')
               }
@@ -71,10 +63,10 @@ const DefiPlatformList = ({ platformData }: DefiPlatformListProps) => {
   ]
 
   const [list, setList] = useState<DefiPlatform[]>()
-  const [attributeList, setAttributeList] = useState<any[]>([])
   const [setting, setSetting] = useState<string>('ALL')
 
   const reset = async () => {
+    setSetting('ALL')
     const res = await axios.get('/api/defi/platforms')
     if (res && res.data) {
       setList(res.data.data)
@@ -101,7 +93,7 @@ const DefiPlatformList = ({ platformData }: DefiPlatformListProps) => {
   const update = (platform: DefiPlatform) => {
     axios.post('/api/defi/platforms/update', platform).then((r) => {
       if (r && r.status === 200) {
-        fetchList().then((r) => message.success('업데이트 성공'))
+        message.success('업데이트 성공')
       } else {
         message.warn('업데이트 실패')
       }
