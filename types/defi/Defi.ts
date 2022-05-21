@@ -17,4 +17,6 @@ export interface Defi {
   syncYmdt: string
   updateYmdt: string
   historyUpdateYmdt: string
+  isService: boolean
+  isRecommend: boolean
 }

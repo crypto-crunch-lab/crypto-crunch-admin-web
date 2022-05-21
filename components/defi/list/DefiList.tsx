@@ -1,10 +1,11 @@
-import { Button, Descriptions, Input, Select, Table, Tag } from 'antd'
+import { Button, Descriptions, Input, message, Select, Switch, Table, Tag } from 'antd'
 import axios from 'axios'
 import dotProp from 'dot-prop-immutable'
 import moment from 'moment'
 import numeral from 'numeral'
 import { useEffect, useState } from 'react'
 
+import { Defi } from '../../../types/defi/Defi'
 import { DefiPlatform } from '../../../types/defi/DefiPlatform'
 import { DefiConf } from '../DefiConf'
 
@@ -13,6 +14,7 @@ interface DefiSearchRequest {
   size: number
   sorts: DefiSearchSort
   filters: DefiSearchFilter
+  exposureType: string
 }
 
 interface DefiSearchSort {
@@ -32,10 +34,11 @@ interface DefiListProps {
 }
 
 const DefiList = ({ defiData, networkData }: DefiListProps) => {
-  const initialRequest = {
+  const initialRequest: DefiSearchRequest = {
     size: 10000,
     sorts: { field: 'tvl', order: 'DESC' },
     filters: { tvlRange: 0, apyRange: 0, network: 'ALL' },
+    exposureType: 'ADMIN',
   }
 
   const columns = [
@@ -108,10 +111,48 @@ const DefiList = ({ defiData, networkData }: DefiListProps) => {
       render: (data: any) => moment(data).format('yyyy-MM-DD HH:mm:ss'),
     },
     {
-      title: '차트데이터 수정시간',
+      title: '차트 수정시간',
       dataIndex: 'historyUpdateYmdt',
       key: 'historyUpdateYmdt',
       render: (data: any) => moment(data).format('yyyy-MM-DD HH:mm:ss'),
+    },
+    {
+      title: '노출 여부',
+      dataIndex: 'isService',
+      key: 'isService',
+      filters: [
+        {
+          text: 'Y',
+          value: true,
+        },
+        {
+          text: 'N',
+          value: false,
+        },
+      ],
+      onFilter: (value: any, record: Defi) => record.isService === value,
+      render: (data: boolean, record: Defi) => (
+        <Switch checked={data} onChange={() => onChangeToggle(record, 'isService')} />
+      ),
+    },
+    {
+      title: '추천 여부',
+      dataIndex: 'isRecommend',
+      key: 'isRecommend',
+      filters: [
+        {
+          text: 'Y',
+          value: true,
+        },
+        {
+          text: 'N',
+          value: false,
+        },
+      ],
+      onFilter: (value: any, record: Defi) => record.isRecommend === value,
+      render: (data: boolean, record: Defi) => (
+        <Switch checked={data} onChange={() => onChangeToggle(record, 'isRecommend')} />
+      ),
     },
   ]
 
@@ -124,6 +165,20 @@ const DefiList = ({ defiData, networkData }: DefiListProps) => {
     if (keyword && keyword.length > 0) {
       setRequest(dotProp.set(request, 'searchKeyword', e.target.value))
     }
+  }
+
+  const onChangeToggle = (record: Defi, field: string) => {
+    setList(
+      list?.map((d: Defi) => {
+        if (d.id === record.id) {
+          // @ts-ignore
+          return dotProp.set(d, field, !d[field])
+        }
+        return d
+      }),
+    )
+    // @ts-ignore
+    update(dotProp.set(record, field, !record[field]))
   }
 
   const setSorter = (field: string, order: any) => {
@@ -155,6 +210,16 @@ const DefiList = ({ defiData, networkData }: DefiListProps) => {
     if (res && res.data) {
       setList(res.data)
     }
+  }
+
+  const update = (defi: Defi) => {
+    axios.post('/api/defi/update', defi).then((r) => {
+      if (r && r.status === 200) {
+        message.success('업데이트 성공')
+      } else {
+        message.warn('업데이트 실패')
+      }
+    })
   }
 
   const handleTableChange = (pagination: any, filters: any, sorter: any) => {
@@ -230,6 +295,19 @@ const DefiList = ({ defiData, networkData }: DefiListProps) => {
             <Select.Option value={5}>APY 200% 이상</Select.Option>
             <Select.Option value={6}>APY 500% 이상</Select.Option>
             <Select.Option value={7}>APY 1000% 이상</Select.Option>
+          </Select>
+        </Descriptions.Item>
+        <Descriptions.Item label='노출 타입'>
+          <Select
+            defaultValue='ADMIN'
+            value={request.exposureType}
+            style={{ width: 200 }}
+            allowClear
+            onChange={(value) => setRequest(dotProp.set(request, 'exposureType', value))}
+          >
+            <Select.Option value='ADMIN'>어드민</Select.Option>
+            <Select.Option value='SVC'>서비스</Select.Option>
+            <Select.Option value='RECOMM'>추천</Select.Option>
           </Select>
         </Descriptions.Item>
         <Descriptions.Item label='키워드'>

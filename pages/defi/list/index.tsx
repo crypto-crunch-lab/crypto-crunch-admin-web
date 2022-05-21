@@ -18,7 +18,12 @@ export async function getServerSideProps() {
   // Fetch data from external API
   const defiResponse: DefaultResponse<Defi[]> = await axios.post(
     'http://server.crypto-crunch-tech.com:8080/api/v1/defi/svc',
-    { size: 10000 },
+    {
+      size: 10000,
+      sorts: { field: 'tvl', order: 'DESC' },
+      filters: { tvlRange: 0, apyRange: 0, network: 'ALL' },
+      exposureType: 'ADMIN',
+    },
   )
   const networkResponse = await axios.get('http://server.crypto-crunch-tech.com:8080/api/v1/defi/svc/networks')
 
