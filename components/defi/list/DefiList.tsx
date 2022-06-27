@@ -6,9 +6,9 @@ import numeral from 'numeral'
 import { useEffect, useState } from 'react'
 
 import { Defi } from '../../../types/defi/Defi'
+import { DefiNetwork } from '../../../types/defi/DefiNetwork'
 import { DefiPlatform } from '../../../types/defi/DefiPlatform'
 import { DefiConf } from '../DefiConf'
-import { DefiNetwork } from '../../../types/defi/DefiNetwork'
 
 interface DefiSearchRequest {
   searchKeyword?: string
