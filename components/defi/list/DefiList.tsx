@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { Defi } from '../../../types/defi/Defi'
 import { DefiPlatform } from '../../../types/defi/DefiPlatform'
 import { DefiConf } from '../DefiConf'
+import { DefiNetwork } from '../../../types/defi/DefiNetwork'
 
 interface DefiSearchRequest {
   searchKeyword?: string
@@ -62,7 +63,7 @@ const DefiList = ({ defiData, networkData }: DefiListProps) => {
       title: '네트워크',
       dataIndex: 'network',
       key: 'network',
-      render: (data: string) => <Tag>{data}</Tag>,
+      render: (data: DefiNetwork) => <Tag>{data.name}</Tag>,
     },
     {
       title: 'APY',

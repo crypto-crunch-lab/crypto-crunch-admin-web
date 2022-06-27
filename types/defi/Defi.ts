@@ -1,15 +1,17 @@
+import { DefiNetwork } from './DefiNetwork'
+import { DefiPlatform } from './DefiPlatform'
+
 export interface Defi {
   id: string
   name: string
-  platform: string
-  network: string
+  platform: DefiPlatform
+  network: DefiNetwork
   base: number
   reward: number
   apy: number
   tvl: number
   risk: number
   defiIconUrl: string
-  platformIconUrl: string
   detailUrl: string
   coinTypes: any[]
   apySeries: any[]
